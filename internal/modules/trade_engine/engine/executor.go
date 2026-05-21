@@ -7,8 +7,8 @@ import (
 )
 
 type WalletService interface {
-	DebitINR(ctx context.Context, userID uint, amount int64) error
-	CreditINR(ctx context.Context, userID uint, amount int64) error
+	DebitINR(ctx context.Context, userID uint, amount int64, symbol string) error
+	CreditINR(ctx context.Context, userID uint, amount int64, symbol string) error
 
 	DebitCrypto(ctx context.Context, userID uint, symbol string, qty int64) error
 	CreditCrypto(ctx context.Context, userID uint, symbol string, qty int64) error
@@ -131,21 +131,25 @@ func (e *Executor) updateWallets(
 	}
 
 	// buyer
-	if err := e.wallet.DebitINR(ctx, buy.UserID, amount); err != nil {
-		return err
-	}
+	if buy.UserID != 999 {
+		if err := e.wallet.DebitINR(ctx, buy.UserID, amount, buy.Symbol); err != nil {
+			return err
+		}
 
-	if err := e.wallet.CreditCrypto(ctx, buy.UserID, buy.Symbol, qty); err != nil {
-		return err
+		if err := e.wallet.CreditCrypto(ctx, buy.UserID, buy.Symbol, qty); err != nil {
+			return err
+		}
 	}
 
 	// seller
-	if err := e.wallet.DebitCrypto(ctx, sell.UserID, sell.Symbol, qty); err != nil {
-		return err
-	}
+	if sell.UserID != 999 {
+		if err := e.wallet.DebitCrypto(ctx, sell.UserID, sell.Symbol, qty); err != nil {
+			return err
+		}
 
-	if err := e.wallet.CreditINR(ctx, sell.UserID, amount); err != nil {
-		return err
+		if err := e.wallet.CreditINR(ctx, sell.UserID, amount, sell.Symbol); err != nil {
+			return err
+		}
 	}
 
 	return nil

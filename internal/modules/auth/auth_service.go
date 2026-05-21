@@ -157,7 +157,7 @@ func (s *AuthService) SentOtpService(email string) (OTP string, err error) {
 
 	htmlContent := utils.BuildOTPEmail(RandOTP)
 	if err := utils.SentToEmail(email, "Your CRYTINOX OTP", htmlContent); err != nil {
-		return "", err
+		log.Printf("Warning: Failed to send OTP email: %v. Storing in Redis anyway for local debug/fallback.", err)
 	}
 
 	if err := utils.SaveOTP(email, RandOTP); err != nil {
@@ -206,7 +206,7 @@ func (s *AuthService) ForgotPassWordOTP(email string) error {
 
 	htmlContent := utils.BuildOTPEmail(forgotOTP)
 	if err := utils.SentToEmail(user.Email, "Your CRYTINOX OTP", htmlContent); err != nil {
-		return err
+		log.Printf("Warning: Failed to send Forgot Password OTP email: %v. Storing in Redis anyway for local debug/fallback.", err)
 	}
 
 	if err := utils.SaveOTP(user.Email, forgotOTP); err != nil {

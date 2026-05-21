@@ -40,6 +40,9 @@ type Service interface {
 	VerifyPayment(orderID, paymentID, signature string) bool
 	VerifyWebhookSignature(body []byte, signature string) bool
 	FetchPaymentAmount(paymentID string) (int64, error)
+
+	TradeCredit(ctx context.Context, userID uint, amount int64, description string) error
+	TradeDebit(ctx context.Context, userID uint, amount int64, description string) error
 }
 
 type service struct {
@@ -152,7 +155,7 @@ func (s *service) ChangePin(ctx context.Context, userID uint, oldPin, newPin str
 		return err
 	}
 
-	// verify old PIN
+	// verify old PIN 
 	if err := s.verifyPin(wallet, oldPin); err != nil {
 		return err
 	}
@@ -377,5 +380,45 @@ func (s *service) CreditPlatform(ctx context.Context, amount int64, source strin
 	}
 
 	return s.repo.CreditPlatform(ctx, amount, txn)
+}
+
+func (s *service) TradeCredit(ctx context.Context, userID uint, amount int64, description string) error {
+	wallet, err := s.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if wallet.Status != "active" {
+		return errors.New("wallet not active")
+	}
+
+	txn := &WalletTransaction{
+		TxnID:       generateTxnID(),
+		Source:      "trade",
+		Status:      "success",
+		Description: description,
+	}
+
+	return s.repo.Credit(ctx, userID, amount, txn)
+}
+
+func (s *service) TradeDebit(ctx context.Context, userID uint, amount int64, description string) error {
+	wallet, err := s.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if wallet.Status != "active" {
+		return errors.New("wallet not active")
+	}
+
+	txn := &WalletTransaction{
+		TxnID:       generateTxnID(),
+		Source:      "trade",
+		Status:      "success",
+		Description: description,
+	}
+
+	return s.repo.Debit(ctx, userID, amount, txn)
 }
 
