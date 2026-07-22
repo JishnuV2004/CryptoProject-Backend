@@ -10,6 +10,7 @@ import (
 	"cryptox/internal/modules/payment"
 	"cryptox/internal/modules/profile"
 	"cryptox/internal/modules/rbac"
+	webconfiguration "cryptox/internal/modules/webConfiguration"
 
 	tradeengine "cryptox/internal/modules/trade_engine"
 	"cryptox/internal/modules/trade_engine/bot"
@@ -18,11 +19,19 @@ import (
 	walletadapter "cryptox/internal/modules/wallet_adapter"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 func SetUp(app *fiber.App, db *gorm.DB, rdb *redis.Client, jwtSecret, razorpayKey, razorpaySecret string) {
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:5173,http://localhost:5173",
+		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowCredentials: true,
+	}))
 
 	api := app.Group("/api")
 
@@ -38,7 +47,7 @@ func SetUp(app *fiber.App, db *gorm.DB, rdb *redis.Client, jwtSecret, razorpayKe
 	cryptoWalletService := cryptowallet.NewService(cryptoRepo)
 
 	// wallet adapter (IMPORTANT)
-	walletAdapter:= walletadapter.New(cashWalletService, cryptoWalletService)
+	walletAdapter := walletadapter.New(cashWalletService, cryptoWalletService)
 
 	// ecard
 	ecardRepo := ecard.NewRepository(db)
@@ -68,17 +77,23 @@ func SetUp(app *fiber.App, db *gorm.DB, rdb *redis.Client, jwtSecret, razorpayKe
 	b.Start()
 
 	// trigger watcher
-	triggerWatcher:=engine.NewTriggerWatcher(
+	triggerWatcher := engine.NewTriggerWatcher(
 		eng,
 		tradeRepo,
 		rdb,
 	)
 	triggerWatcher.Start()
 
+	//webConfiguration
+	sharedHub := market.NewHub()
+	webRepo := webconfiguration.NewConfigRepo(db)
+	webService := webconfiguration.NewService(webRepo, sharedHub)
+
 	// routes
-	auth.AuthRoutes(api, db, rdb, jwtSecret)
+	auth.AuthRoutes(api, db, rdb, jwtSecret, webService)
 	profile.ProfileRoutes(api, db, jwtSecret)
 	rbac.RegisterRoutes(api, db, jwtSecret)
+	webconfiguration.WebConfigRoutes(api, webService)
 
 	kyc.RegisterRoutes(api, kycService, jwtSecret)
 	ecard.RegisterRoutes(api, ecardService, jwtSecret)
@@ -86,5 +101,5 @@ func SetUp(app *fiber.App, db *gorm.DB, rdb *redis.Client, jwtSecret, razorpayKe
 	cryptowallet.RegisterRoutes(api, cryptoWalletService, jwtSecret)
 
 	tradeengine.RegisterRoutes(api, tradeService, jwtSecret)
-	market.RegisterRoutes(api,rdb)
+	market.RegisterRoutes(api, rdb, sharedHub)
 }
