@@ -29,6 +29,7 @@ func main() {
 
 	//add admin
 	seed.Addadmin(db)
+	seed.WebConfig(db)
 
 	// Connect Redis
 	rdb, err := redisClient.NewRedisClient(cfg)

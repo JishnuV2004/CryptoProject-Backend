@@ -8,6 +8,7 @@ import (
 	"cryptox/internal/modules/kyc"
 	"cryptox/internal/modules/rbac"
 	"cryptox/internal/modules/trade_engine/model"
+	webconfiguration "cryptox/internal/modules/webConfiguration"
 	"cryptox/packages/config"
 	"log"
 	"time"
@@ -51,6 +52,7 @@ func NewPostgresConnection(cfg *config.Config)(*gorm.DB,error){
 		//RBAC
 		&rbac.Role{},
 		&rbac.Permission{},
+		&webconfiguration.FeatureFlag{},
 	)
 	if err != nil {
 		log.Fatal(err)

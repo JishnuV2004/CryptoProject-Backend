@@ -293,7 +293,7 @@ func (h *Handler) RazorpayWebhook(c *fiber.Ctx) error {
 	// CREDIT WALLET
 	err1 := h.service.HandleDepositSuccess(c.UserContext(), userID, amount, paymentID)
 	if err1 != nil {
-		return utils.Error(c, 500, "deposit failed", err.Error())
+		return utils.Error(c, 500, "deposit failed", err1.Error())
 	}
 
 	return utils.Success(c, 200, "payment processed", nil)

@@ -20,7 +20,7 @@ func (s *MarketService) Publish(ctx context.Context, ticker Ticker) error {
 		return err
 	}
 
-	s.hub.Broadcast(ticker.Symbol, ticker)
+	s.hub.Broadcast(ticker.Symbol, WSMessage{Type: "price_update", Data: ticker})
 
 	return nil
 }

@@ -53,3 +53,13 @@ type BinanceTicker struct {
 
 	TradeCount json.Number `json:"n"`
 }
+
+type WSRequest struct {
+	Type    string   `json:"type"`
+	Symbols []string `json:"symbols"`
+}
+
+type WSMessage struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}

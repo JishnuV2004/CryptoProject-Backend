@@ -6,9 +6,9 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func RegisterRoutes(r fiber.Router, redis *redis.Client) {
+func RegisterRoutes(r fiber.Router, redis *redis.Client, hub *Hub) {
 
-	hub := NewHub()
+	// hub := NewHub()
 	repo := NewMarketRepo(redis)
 	marketService := NewMarketService(repo, hub)
 	marketController := NewMarketController(repo, hub)
