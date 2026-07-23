@@ -62,7 +62,7 @@ func (s *AuthController) Login(c *fiber.Ctx) error {
 		Name:     "access",
 		Value:    access,
 		HTTPOnly: true,
-		SameSite: "Lax", // Strict in production
+		SameSite: "None", // Strict in production
 		Secure:   false, // true in production (HTTPS)
 		Path:     "/",
 		MaxAge:   60 * 60 * 24 * 7, // 7 days
@@ -71,7 +71,7 @@ func (s *AuthController) Login(c *fiber.Ctx) error {
 		Name:     "refresh",
 		Value:    refresh,
 		HTTPOnly: true,
-		SameSite: "Lax",
+		SameSite: "None",
 		Secure:   false,
 		Path:     "/",              // only sent to refresh endpoint
 		MaxAge:   60 * 60 * 24 * 7, // 7 days
